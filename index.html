@@ -528,8 +528,8 @@ function addDeliveryLine(){
 function removeDeliveryLine(i){dnLinesData.splice(i,1);renderDeliveryLines();updateDeliveryPreview()}
 function renderDeliveryLines(){
   if(!$('dnLines'))return;
-  $('dnLines').innerHTML=dnLinesData.length?`<table><tr><th>Kod</th><th>Ürün</th><th>Miktar</th><th>Birim</th><th></th></tr>`+
-    dnLinesData.map((x,i)=>`<tr><td>${x.product_code}</td><td>${x.product_name}</td><td>${x.qty}</td><td>${x.unit}</td><td><button class="btn danger dn-line-delete" data-index="${i}" type="button">Sil</button></td></tr>`).join('')+'</table>':'<p class="muted">Henüz ürün satırı eklenmedi.</p>';
+  $('dnLines').innerHTML=dnLinesData.length?`<table><tr><th>Ürün Kodu</th><th>Ürün Adı</th><th>Verilen Adet</th><th>Birim</th><th></th></tr>`+
+    dnLinesData.map((x,i)=>`<tr><td>${x.product_code}</td><td>${x.product_name}</td><td><b>${x.qty}</b></td><td>${x.unit}</td><td><button class="btn danger dn-line-delete" data-index="${i}" type="button">Sil</button></td></tr>`).join('')+'</table>':'<p class="muted">Ürün seçip miktarı yazın, ardından <b>Satır Ekle</b> butonuna basın.</p>';
 }
 function selectedDnContact(){return contacts2.find(x=>x.id===$('dnContact').value)}
 function updateDeliveryPreview(){
@@ -540,9 +540,13 @@ function updateDeliveryPreview(){
   $('pvFirm').textContent=c?.name||'-';$('pvTax').textContent=c?.tax_no||'-';$('pvTaxOffice').textContent=c?.tax_office||'-';$('pvAddress').textContent=c?.address||'-';
   $('pvProject').textContent=$('dnProject').value||'-';$('pvShipAddress').textContent=$('dnShipAddress').value||c?.address||'-';$('pvPlate').textContent=$('dnPlate').value||'-';$('pvNote').textContent=$('dnNote').value||'-';
   $('pvDeliveredBy').textContent=$('dnDeliveredBy').value||'-';$('pvReceivedBy').textContent=$('dnReceivedBy').value||'-';
-  $('pvLines').innerHTML=dnLinesData.length?`<table><tr><th>Sıra</th><th>Ürün Kodu</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th></tr>`+
-    dnLinesData.map((x,i)=>`<tr><td>${i+1}</td><td>${x.product_code}</td><td>${x.product_name}</td><td>${x.qty}</td><td>${x.unit}</td></tr>`).join('')+
-    `<tr><td colspan="3" style="text-align:right"><b>Toplam Miktar</b></td><td><b>${dnLinesData.reduce((s,x)=>s+Number(x.qty),0)}</b></td><td></td></tr></table>`:'<p style="font-size:12px">Ürün satırı yok.</p>';
+  $('pvLines').innerHTML=dnLinesData.length?`
+    <div style="margin-top:8px;font-size:12px;font-weight:800">VERİLEN ÜRÜNLER</div>
+    <table style="margin-top:6px">
+      <tr><th>Sıra</th><th>Ürün Kodu</th><th>Ürün Adı</th><th>Verilen Adet</th><th>Birim</th></tr>
+      ${dnLinesData.map((x,i)=>`<tr><td>${i+1}</td><td>${x.product_code}</td><td>${x.product_name}</td><td><b>${x.qty}</b></td><td>${x.unit}</td></tr>`).join('')}
+      <tr><td colspan="3" style="text-align:right"><b>Toplam Verilen</b></td><td><b>${dnLinesData.reduce((s,x)=>s+Number(x.qty),0)}</b></td><td></td></tr>
+    </table>`:'<div style="margin-top:12px;padding:10px;border:1px dashed #98a6ad;font-size:12px"><b>VERİLEN ÜRÜNLER</b><br>Henüz ürün eklenmedi. Soldan ürün ve miktarı seçip <b>Satır Ekle</b> butonuna basın.</div>';
 }
 async function saveDeliveryNote(){
   const c=selectedDnContact();
