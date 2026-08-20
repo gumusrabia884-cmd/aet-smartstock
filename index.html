@@ -159,6 +159,103 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
   <div class="card"><h3>Raporlar</h3><p class="muted">Ürün ve stok hareketlerini CSV/Excel uyumlu dosya olarak indirebilirsin.</p>
   <div class="actions"><button class="btn primary" id="exportProducts" type="button">Ürün Listesini İndir</button><button class="btn soft" id="exportMoves" type="button">Stok Hareketlerini İndir</button></div></div>
 </section>
+
+<section id="contactssec" class="section">
+  <div class="card"><h3>Cari / Firma Ekle</h3>
+    <div class="formgrid">
+      <div><label>Cari Kodu</label><input id="cCode" placeholder="CR0001"></div>
+      <div><label>Firma / Müşteri Adı</label><input id="cName"></div>
+      <div><label>Vergi No / TCKN</label><input id="cTax"></div>
+      <div><label>Vergi Dairesi</label><input id="cTaxOffice"></div>
+      <div><label>Telefon</label><input id="cPhone"></div>
+      <div><label>E-posta</label><input id="cEmail" type="email"></div>
+      <div><label>Cari Tipi</label><select id="cType"><option>Müşteri</option><option>Tedarikçi</option><option>Her İkisi</option></select></div>
+      <div><label>Durum</label><select id="cStatus"><option>Aktif</option><option>Pasif</option></select></div>
+      <div style="grid-column:1/-1"><label>Adres</label><input id="cAddress"></div>
+    </div>
+    <div class="actions"><button class="btn primary" id="saveContact" type="button">Cari Kaydet</button><button class="btn soft hidden" id="cancelContactEdit" type="button">İptal</button></div>
+  </div>
+  <div class="card"><div class="top"><h3>Cari Listesi</h3><input class="search" id="contactSearch" placeholder="Cari ara..."></div><div id="contactTable2" class="table-wrap"></div></div>
+</section>
+
+<section id="deliverynote" class="section">
+  <div class="invoice-layout">
+    <div>
+      <div class="card">
+        <h3>E-İrsaliye / Sevk İrsaliyesi Hazırla</h3>
+        <p class="muted">Bu bölüm yazdırılabilir sevk belgesi oluşturur. Resmî GİB e-İrsaliye gönderimi için ayrıca entegratör bağlantısı gerekir.</p>
+        <div class="formgrid">
+          <div><label>İrsaliye No</label><input id="dnNo"></div>
+          <div><label>Tarih / Saat</label><input id="dnDate" type="datetime-local"></div>
+          <div><label>Cari / Firma</label><select id="dnContact"></select></div>
+          <div><label>Proje Adı</label><input id="dnProject"></div>
+          <div><label>Sevk Adresi</label><input id="dnShipAddress"></div>
+          <div><label>Plaka</label><input id="dnPlate"></div>
+          <div><label>Teslim Eden</label><input id="dnDeliveredBy"></div>
+          <div><label>Teslim Alan</label><input id="dnReceivedBy"></div>
+          <div style="grid-column:1/-1"><label>Açıklama</label><input id="dnNote"></div>
+        </div>
+        <hr style="border:0;border-top:1px solid #e5e7eb;margin:18px 0">
+        <h4>Ürün Satırları</h4>
+        <div class="line-editor">
+          <div><label>Ürün</label><select id="dnProduct"></select></div>
+          <div><label>Miktar</label><input id="dnQty" type="number" min="1" value="1"></div>
+          <button class="btn soft" id="dnAddLine" type="button">Satır Ekle</button>
+        </div>
+        <div id="dnLines" class="table-wrap" style="margin-top:12px"></div>
+        <div class="actions">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:700"><input id="dnReduceStock" type="checkbox" style="width:auto"> İrsaliye kaydedilince stoktan düş</label>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="dnSave" type="button">İrsaliyeyi Kaydet</button>
+          <button class="btn soft" id="dnPrint" type="button">PDF / Yazdır</button>
+          <button class="btn soft" id="dnNew" type="button">Yeni İrsaliye</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Kayıtlı İrsaliyeler</h3>
+        <div id="dnSaved" class="table-wrap"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="invoice-paper" id="invoicePrintArea">
+        <div class="invoice-head">
+          <div class="invoice-logo">AET<br>OTOMASYON<small>akıllı ev teknolojileri</small></div>
+          <div class="invoice-company">
+            <b>Adres:</b> Megapol Çarşı Kule Halkapınar Mah.<br>
+            1203/11 Sokak No: 5-7 Kat:15 Ofis:157<br>
+            <b>Ofis Tel:</b> 0232 203 57 77 &nbsp; Konak / İZMİR<br>
+            www.aetotomasyon.com
+          </div>
+        </div>
+        <div class="invoice-title">SEVK İRSALİYESİ</div>
+        <div style="text-align:right;font-size:12px;margin-bottom:10px"><b>No:</b> <span id="pvNo">-</span><br><b>Tarih:</b> <span id="pvDate">-</span></div>
+        <div class="invoice-meta">
+          <div class="invoice-box"><b>SAYIN</b><br><br>
+            <b>Firma:</b> <span id="pvFirm">-</span><br>
+            <b>Vergi No:</b> <span id="pvTax">-</span><br>
+            <b>Vergi Dairesi:</b> <span id="pvTaxOffice">-</span><br>
+            <b>Adres:</b> <span id="pvAddress">-</span>
+          </div>
+          <div class="invoice-box"><b>SEVK BİLGİSİ</b><br><br>
+            <b>Proje:</b> <span id="pvProject">-</span><br>
+            <b>Sevk Adresi:</b> <span id="pvShipAddress">-</span><br>
+            <b>Plaka:</b> <span id="pvPlate">-</span><br>
+            <b>Açıklama:</b> <span id="pvNote">-</span>
+          </div>
+        </div>
+        <div id="pvLines" style="margin-top:14px"></div>
+        <div class="invoice-sign">
+          <div><b>TESLİM EDEN</b><br><br>İsim / Soyisim: <span id="pvDeliveredBy">-</span><br><br><br>İmza:</div>
+          <div><b>TESLİM ALAN</b><br><br>İsim / Soyisim: <span id="pvReceivedBy">-</span><br><br><br>İmza:</div>
+        </div>
+        <div class="invoice-footer">CORE &nbsp;&nbsp;&nbsp; HAGER &nbsp;&nbsp;&nbsp; KNX PARTNER</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 </div>
 
@@ -173,7 +270,15 @@ let editingProductId=null, editingProductImage=null;
 const nowLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
 const qtyText=(n,u)=>`${Number(n)||0} ${u||'Adet'}`;
 
-function show(sec,btn){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));$(sec).classList.add('active');document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$('title').textContent=btn.textContent.replace(/^[^ ]+ /,'')}
+function show(sec,btn){
+  const target=$(sec);
+  if(!target){alert('Bu bölüm yüklenemedi: '+sec);return;}
+  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+  target.classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  $('title').textContent=btn.textContent.replace(/^[^ ]+ /,'');
+}
 async function loadData(){
   const [p,m,c,d]=await Promise.all([
     sb.from('warehouse_products').select('*').order('name'),
@@ -200,11 +305,11 @@ function render(){
   $('moveTable').innerHTML=ml.length?`<table><tr><th>Tür</th><th>Ürün</th><th>Kod</th><th>Kime / Kimden</th><th>Proje</th><th>Tarih</th><th>İşlemi Yapan</th><th>Adet</th><th>Kalan</th><th>Not</th><th></th></tr>`+ml.map(x=>`<tr><td>${x.movement_type||'Çıkış'}</td><td>${x.product_name}</td><td>${x.product_code}</td><td>${x.given_to}</td><td>${x.project_name||'-'}</td><td>${new Date(x.given_at).toLocaleString('tr-TR')}</td><td>${x.given_by}</td><td>${x.qty}</td><td><b>${x.remaining_qty}</b></td><td>${x.note||'-'}</td><td>${x.movement_type==='Çıkış'?`<button type="button" class="btn danger movement-delete" data-id="${x.id}" data-product-id="${x.product_id}" data-qty="${x.qty}" data-product="${x.product_name}">Sil</button>`:''}</td></tr>`).join('')+'</table>':'<p class="muted">Hareket yok.</p>';
 
   const returned=movements.filter(x=>x.movement_type==='İade');
-  $('returnedTable').innerHTML=returned.length?`<table><tr><th>Ürün</th><th>Kod</th><th>Kimden Geldi</th><th>Tarih</th><th>İadeyi Alan</th><th>Adet</th><th>Kalan</th><th>Not</th><th></th></tr>`+
+  if($('returnedTable')) $('returnedTable').innerHTML=returned.length?`<table><tr><th>Ürün</th><th>Kod</th><th>Kimden Geldi</th><th>Tarih</th><th>İadeyi Alan</th><th>Adet</th><th>Kalan</th><th>Not</th><th></th></tr>`+
     returned.map(x=>`<tr><td>${x.product_name}</td><td>${x.product_code}</td><td>${x.given_to}</td><td>${new Date(x.given_at).toLocaleString('tr-TR')}</td><td>${x.given_by}</td><td>${x.qty}</td><td><b>${x.remaining_qty}</b></td><td>${x.note||'-'}</td><td><button type="button" class="btn danger return-delete" data-id="${x.id}" data-product-id="${x.product_id}" data-qty="${x.qty}" data-product="${x.product_name}">Sil</button></td></tr>`).join('')+'</table>':'<p class="muted">Henüz iade kaydı yok.</p>';
 
   const issued=movements.filter(x=>(x.movement_type||'Çıkış')==='Çıkış');
-  $('issuedTable').innerHTML=issued.length?`<table><tr><th>Ürün</th><th>Kod</th><th>Kime Verildi</th><th>Proje</th><th>Tarih</th><th>Kim Verdi</th><th>Adet</th><th>Kalan</th><th></th></tr>`+
+  if($('issuedTable')) $('issuedTable').innerHTML=issued.length?`<table><tr><th>Ürün</th><th>Kod</th><th>Kime Verildi</th><th>Proje</th><th>Tarih</th><th>Kim Verdi</th><th>Adet</th><th>Kalan</th><th></th></tr>`+
     issued.map(x=>`<tr><td>${x.product_name}</td><td>${x.product_code}</td><td>${x.given_to}</td><td>${x.project_name||'-'}</td><td>${new Date(x.given_at).toLocaleString('tr-TR')}</td><td>${x.given_by}</td><td>${x.qty}</td><td><b>${x.remaining_qty}</b></td><td><button type="button" class="btn danger issued-delete" data-id="${x.id}" data-product-id="${x.product_id}" data-qty="${x.qty}" data-product="${x.product_name}">Sil</button></td></tr>`).join('')+'</table>':'<p class="muted">Henüz verilen ürün kaydı yok.</p>';
 
   $('dashAlerts').innerHTML=low.length?low.slice(0,6).map(x=>`<div class="alert"><b>${x.name}</b> • ${x.code} • <b>${x.stock_qty} kaldı</b> → STOK YENİLE</div>`).join(''):'<p class="muted">10 adedin altında ürün yok.</p>';
@@ -550,15 +655,15 @@ async function login(){
 async function logout(){await sb.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 document.addEventListener('DOMContentLoaded',async()=>{
 if(window.supabase&&window.supabase.createClient) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);['iDate','sDate','rDate'].forEach(id=>$(id).value=nowLocal());$('dnDate').value=nowLocal();$('dnNo').value=generateDnNo();$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').addEventListener('click',logout);$('addProduct').addEventListener('click',addProduct);$('cancelProductEdit').addEventListener('click',resetProductForm);$('stockInBtn').addEventListener('click',stockIn);$('issueBtn').addEventListener('click',issue);$('returnBtn').addEventListener('click',ret);
-$('saveContact').addEventListener('click',saveWarehouseContact);
-$('cancelContactEdit').addEventListener('click',resetContactForm);
-$('contactSearch').addEventListener('input',render);
-$('dnAddLine').addEventListener('click',addDeliveryLine);
-$('dnSave').addEventListener('click',saveDeliveryNote);
-$('dnPrint').addEventListener('click',()=>{updateDeliveryPreview();window.print()});
-$('dnNew').addEventListener('click',newDeliveryNote);
-['dnNo','dnDate','dnProject','dnShipAddress','dnPlate','dnDeliveredBy','dnReceivedBy','dnNote'].forEach(id=>$(id).addEventListener('input',updateDeliveryPreview));
-$('dnContact').addEventListener('change',()=>{const c=selectedDnContact();if(c&&!$('dnShipAddress').value)$('dnShipAddress').value=c.address||'';updateDeliveryPreview()});$('iProduct').addEventListener('change',renderSelected);$('productSearch').addEventListener('input',render);$('moveSearch').addEventListener('input',render);$('exportProducts').addEventListener('click',()=>csv('AET_SmartStock_Urunler.csv',products));$('exportMoves').addEventListener('click',()=>csv('AET_SmartStock_Hareketler.csv',movements));document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.sec,b)));document.addEventListener('click',e=>{
+if($('saveContact')) $('saveContact').addEventListener('click',saveWarehouseContact);
+if($('cancelContactEdit')) $('cancelContactEdit').addEventListener('click',resetContactForm);
+if($('contactSearch')) $('contactSearch').addEventListener('input',render);
+if($('dnAddLine')) $('dnAddLine').addEventListener('click',addDeliveryLine);
+if($('dnSave')) $('dnSave').addEventListener('click',saveDeliveryNote);
+if($('dnPrint')) $('dnPrint').addEventListener('click',()=>{updateDeliveryPreview();window.print()});
+if($('dnNew')) $('dnNew').addEventListener('click',newDeliveryNote);
+['dnNo','dnDate','dnProject','dnShipAddress','dnPlate','dnDeliveredBy','dnReceivedBy','dnNote'].forEach(id=>{if($(id))$(id).addEventListener('input',updateDeliveryPreview)});
+if($('dnContact')) $('dnContact').addEventListener('change',()=>{const c=selectedDnContact();if(c&&!$('dnShipAddress').value)$('dnShipAddress').value=c.address||'';updateDeliveryPreview()});$('iProduct').addEventListener('change',renderSelected);$('productSearch').addEventListener('input',render);$('moveSearch').addEventListener('input',render);$('exportProducts').addEventListener('click',()=>csv('AET_SmartStock_Urunler.csv',products));$('exportMoves').addEventListener('click',()=>csv('AET_SmartStock_Hareketler.csv',movements));document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.sec,b)));document.addEventListener('click',e=>{
   if(e.target.classList.contains('prod-img')){
     $('imgModalPic').src=e.target.dataset.img;
     $('imgModal').classList.add('show');
