@@ -37,10 +37,21 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
 .contact-actions{display:flex;gap:6px;flex-wrap:wrap}
 .line-editor{display:grid;grid-template-columns:2fr 110px auto;gap:8px;align-items:end}
 @media(max-width:1050px){.invoice-layout{grid-template-columns:1fr}}
+
+.cargo-label{background:#fff;border:2px solid #172033;border-radius:14px;padding:22px;max-width:620px;margin:0 auto;color:#111}
+.cargo-title{text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;border-bottom:3px solid #111;padding-bottom:12px;margin-bottom:14px}
+.cargo-row{display:grid;grid-template-columns:175px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid #cfd5da;align-items:start}
+.cargo-row span,.cargo-address span{font-size:12px;font-weight:900;letter-spacing:.5px}
+.cargo-row strong,.cargo-address strong{font-size:17px;overflow-wrap:anywhere}
+.cargo-address{padding:12px 0;min-height:110px;display:grid;grid-template-columns:175px 1fr;gap:12px}
+.cargo-divider{border-top:3px solid #111;margin:4px 0}
+@media(max-width:700px){.cargo-row,.cargo-address{grid-template-columns:1fr;gap:4px}}
 @media print{
   body *{visibility:hidden!important}
-  #invoicePrintArea,#invoicePrintArea *{visibility:visible!important}
-  #invoicePrintArea{position:absolute;left:0;top:0;width:100%;border:0;border-radius:0;padding:12mm}
+  body:not(.print-cargo) #invoicePrintArea,body:not(.print-cargo) #invoicePrintArea *{visibility:visible!important}
+  body:not(.print-cargo) #invoicePrintArea{position:absolute;left:0;top:0;width:100%;border:0;border-radius:0;padding:12mm}
+  body.print-cargo #cargoPrintArea,body.print-cargo #cargoPrintArea *{visibility:visible!important}
+  body.print-cargo #cargoPrintArea{position:absolute;left:8mm;top:8mm;width:190mm;max-width:none;border:2px solid #111;border-radius:0;padding:10mm}
   .no-print{display:none!important}
 }
 </style>
@@ -71,6 +82,7 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
   <button class="navbtn" data-sec="reports">📑 Raporlar</button>
   <button class="navbtn" data-sec="contactssec">👥 Cariler</button>
   <button class="navbtn" data-sec="deliverynote">📄 E-İrsaliye / Sevk</button>
+  <button class="navbtn" data-sec="cargo">🚚 Kargo</button>
 </aside>
 
 <main class="main">
@@ -189,7 +201,6 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
           <div><label>Tarih / Saat</label><input id="dnDate" type="datetime-local"></div>
           <div><label>Cari / Firma</label><select id="dnContact"></select></div>
           <div><label>Proje Adı</label><input id="dnProject"></div>
-          <div><label>Sevk Adresi</label><input id="dnShipAddress"></div>
           <div><label>Plaka</label><input id="dnPlate"></div>
           <div><label>Teslim Eden</label><input id="dnDeliveredBy"></div>
           <div><label>Teslim Alan</label><input id="dnReceivedBy"></div>
@@ -240,7 +251,6 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
           </div>
           <div class="invoice-box"><b>SEVK BİLGİSİ</b><br><br>
             <b>Proje:</b> <span id="pvProject">-</span><br>
-            <b>Sevk Adresi:</b> <span id="pvShipAddress">-</span><br>
             <b>Plaka:</b> <span id="pvPlate">-</span><br>
             <b>Açıklama:</b> <span id="pvNote">-</span>
           </div>
@@ -251,6 +261,43 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
           <div><b>TESLİM ALAN</b><br><br>İsim / Soyisim: <span id="pvReceivedBy">-</span><br><br><br>İmza:</div>
         </div>
         <div class="invoice-footer">CORE &nbsp;&nbsp;&nbsp; HAGER &nbsp;&nbsp;&nbsp; KNX PARTNER</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cargo" class="section">
+  <div class="grid2">
+    <div class="card no-print">
+      <h3>Kargo</h3>
+      <p class="muted">Kargo kutusuna yapıştırmak için bilgileri doldurup yazdırabilirsin.</p>
+      <div class="formgrid">
+        <div><label>Alıcı Adı / Firma</label><input id="kgReceiver" placeholder="Alıcı adı veya firma"></div>
+        <div><label>Alıcı Telefonu</label><input id="kgReceiverPhone" type="tel" placeholder="05xx xxx xx xx"></div>
+        <div><label>Gönderici Adı</label><input id="kgSender" placeholder="Gönderici adı / firma"></div>
+        <div><label>Gönderici Telefonu</label><input id="kgSenderPhone" type="tel" placeholder="05xx xxx xx xx"></div>
+        <div><label>Gönderici Numarası</label><input id="kgSenderNo" placeholder="Müşteri / gönderici no"></div>
+        <div><label>Ödeme Şekli</label><select id="kgPayment"><option value="">Seçiniz</option><option>Gönderici Ödemeli</option><option>Alıcı Ödemeli</option><option>Nakit</option><option>Kredi Kartı</option><option>Diğer</option></select></div>
+        <div style="grid-column:1/-1"><label>Kargo Adresi</label><input id="kgAddress" placeholder="Mahalle, sokak, bina no, ilçe / il"></div>
+        <div style="grid-column:1/-1"><label>Not</label><input id="kgNote" placeholder="Opsiyonel"></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="kgPrint" type="button">Yazdır</button>
+        <button class="btn soft" id="kgClear" type="button">Temizle</button>
+      </div>
+    </div>
+    <div>
+      <div class="cargo-label" id="cargoPrintArea">
+        <div class="cargo-title">KARGO</div>
+        <div class="cargo-row"><span>ALICI</span><strong id="kgPvReceiver">-</strong></div>
+        <div class="cargo-row"><span>ALICI TELEFONU</span><strong id="kgPvReceiverPhone">-</strong></div>
+        <div class="cargo-address"><span>KARGO ADRESİ</span><strong id="kgPvAddress">-</strong></div>
+        <div class="cargo-divider"></div>
+        <div class="cargo-row"><span>GÖNDERİCİ</span><strong id="kgPvSender">-</strong></div>
+        <div class="cargo-row"><span>GÖNDERİCİ TELEFONU</span><strong id="kgPvSenderPhone">-</strong></div>
+        <div class="cargo-row"><span>GÖNDERİCİ NO</span><strong id="kgPvSenderNo">-</strong></div>
+        <div class="cargo-row"><span>ÖDEME ŞEKLİ</span><strong id="kgPvPayment">-</strong></div>
+        <div class="cargo-row"><span>NOT</span><strong id="kgPvNote">-</strong></div>
       </div>
     </div>
   </div>
@@ -538,7 +585,7 @@ function updateDeliveryPreview(){
   $('pvNo').textContent=$('dnNo').value||'-';
   $('pvDate').textContent=d.toLocaleString('tr-TR');
   $('pvFirm').textContent=c?.name||'-';$('pvTax').textContent=c?.tax_no||'-';$('pvTaxOffice').textContent=c?.tax_office||'-';$('pvAddress').textContent=c?.address||'-';
-  $('pvProject').textContent=$('dnProject').value||'-';$('pvShipAddress').textContent=$('dnShipAddress').value||c?.address||'-';$('pvPlate').textContent=$('dnPlate').value||'-';$('pvNote').textContent=$('dnNote').value||'-';
+  $('pvProject').textContent=$('dnProject').value||'-';$('pvPlate').textContent=$('dnPlate').value||'-';$('pvNote').textContent=$('dnNote').value||'-';
   $('pvDeliveredBy').textContent=$('dnDeliveredBy').value||'-';$('pvReceivedBy').textContent=$('dnReceivedBy').value||'-';
   $('pvLines').innerHTML=dnLinesData.length?`
     <div style="margin-top:8px;font-size:12px;font-weight:800">VERİLEN ÜRÜNLER</div>
@@ -556,7 +603,7 @@ async function saveDeliveryNote(){
     note_no:$('dnNo').value.trim()||generateDnNo(),
     note_date:$('dnDate').value?new Date($('dnDate').value).toISOString():new Date().toISOString(),
     contact_id:c.id,contact_name:c.name,contact_tax_no:c.tax_no,contact_tax_office:c.tax_office,contact_address:c.address,
-    project_name:$('dnProject').value.trim(),ship_address:$('dnShipAddress').value.trim()||c.address,plate:$('dnPlate').value.trim(),
+    project_name:$('dnProject').value.trim(),ship_address:c.address||'',plate:$('dnPlate').value.trim(),
     delivered_by:$('dnDeliveredBy').value.trim(),received_by:$('dnReceivedBy').value.trim(),description:$('dnNote').value.trim(),
     stock_reduced:$('dnReduceStock').checked
   };
@@ -590,14 +637,14 @@ function renderDeliverySaved(){
 }
 function openDeliveryNote(id){
   const x=deliveryNotes.find(n=>n.id===id);if(!x)return;
-  $('dnNo').value=x.note_no||'';$('dnDate').value=toLocalInput(x.note_date);$('dnContact').value=x.contact_id||'';$('dnProject').value=x.project_name||'';$('dnShipAddress').value=x.ship_address||'';$('dnPlate').value=x.plate||'';
+  $('dnNo').value=x.note_no||'';$('dnDate').value=toLocalInput(x.note_date);$('dnContact').value=x.contact_id||'';$('dnProject').value=x.project_name||'';$('dnPlate').value=x.plate||'';
   $('dnDeliveredBy').value=x.delivered_by||'';$('dnReceivedBy').value=x.received_by||'';$('dnNote').value=x.description||'';$('dnReduceStock').checked=!!x.stock_reduced;
   dnLinesData=(x.delivery_note_items||[]).map(i=>({product_id:i.product_id,product_code:i.product_code,product_name:i.product_name,qty:Number(i.qty),unit:i.unit}));
   renderDeliveryLines();updateDeliveryPreview();window.scrollTo({top:0,behavior:'smooth'});
 }
 function toLocalInput(v){const d=new Date(v);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
 function newDeliveryNote(){
-  $('dnNo').value=generateDnNo();$('dnDate').value=nowLocal();$('dnContact').value='';$('dnProject').value='';$('dnShipAddress').value='';$('dnPlate').value='';$('dnDeliveredBy').value='';$('dnReceivedBy').value='';$('dnNote').value='';$('dnReduceStock').checked=false;dnLinesData=[];renderDeliveryLines();updateDeliveryPreview();
+  $('dnNo').value=generateDnNo();$('dnDate').value=nowLocal();$('dnContact').value='';$('dnProject').value='';$('dnPlate').value='';$('dnDeliveredBy').value='';$('dnReceivedBy').value='';$('dnNote').value='';$('dnReduceStock').checked=false;dnLinesData=[];renderDeliveryLines();updateDeliveryPreview();
 }
 
 
@@ -657,6 +704,22 @@ async function login(){
   }
 }
 async function logout(){await sb.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+
+function updateCargoPreview(){
+  const map={kgReceiver:'kgPvReceiver',kgReceiverPhone:'kgPvReceiverPhone',kgAddress:'kgPvAddress',kgSender:'kgPvSender',kgSenderPhone:'kgPvSenderPhone',kgSenderNo:'kgPvSenderNo',kgPayment:'kgPvPayment',kgNote:'kgPvNote'};
+  Object.entries(map).forEach(([src,dst])=>{if($(src)&&$(dst)) $(dst).textContent=$(src).value.trim()||'-'});
+}
+function clearCargo(){
+  ['kgReceiver','kgReceiverPhone','kgAddress','kgSender','kgSenderPhone','kgSenderNo','kgPayment','kgNote'].forEach(id=>{if($(id)) $(id).value=''});
+  updateCargoPreview();
+}
+function printCargo(){
+  updateCargoPreview();
+  document.body.classList.add('print-cargo');
+  window.print();
+  setTimeout(()=>document.body.classList.remove('print-cargo'),300);
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
 if(window.supabase&&window.supabase.createClient) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);['iDate','sDate','rDate'].forEach(id=>$(id).value=nowLocal());$('dnDate').value=nowLocal();$('dnNo').value=generateDnNo();$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').addEventListener('click',logout);$('addProduct').addEventListener('click',addProduct);$('cancelProductEdit').addEventListener('click',resetProductForm);$('stockInBtn').addEventListener('click',stockIn);$('issueBtn').addEventListener('click',issue);$('returnBtn').addEventListener('click',ret);
 if($('saveContact')) $('saveContact').addEventListener('click',saveWarehouseContact);
@@ -666,8 +729,12 @@ if($('dnAddLine')) $('dnAddLine').addEventListener('click',addDeliveryLine);
 if($('dnSave')) $('dnSave').addEventListener('click',saveDeliveryNote);
 if($('dnPrint')) $('dnPrint').addEventListener('click',()=>{updateDeliveryPreview();window.print()});
 if($('dnNew')) $('dnNew').addEventListener('click',newDeliveryNote);
-['dnNo','dnDate','dnProject','dnShipAddress','dnPlate','dnDeliveredBy','dnReceivedBy','dnNote'].forEach(id=>{if($(id))$(id).addEventListener('input',updateDeliveryPreview)});
-if($('dnContact')) $('dnContact').addEventListener('change',()=>{const c=selectedDnContact();if(c&&!$('dnShipAddress').value)$('dnShipAddress').value=c.address||'';updateDeliveryPreview()});$('iProduct').addEventListener('change',renderSelected);$('productSearch').addEventListener('input',render);$('moveSearch').addEventListener('input',render);$('exportProducts').addEventListener('click',()=>csv('AET_SmartStock_Urunler.csv',products));$('exportMoves').addEventListener('click',()=>csv('AET_SmartStock_Hareketler.csv',movements));document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.sec,b)));document.addEventListener('click',e=>{
+if($('kgPrint')) $('kgPrint').addEventListener('click',printCargo);
+if($('kgClear')) $('kgClear').addEventListener('click',clearCargo);
+['kgReceiver','kgReceiverPhone','kgAddress','kgSender','kgSenderPhone','kgSenderNo','kgPayment','kgNote'].forEach(id=>{if($(id)){ $(id).addEventListener('input',updateCargoPreview); $(id).addEventListener('change',updateCargoPreview); }});
+updateCargoPreview();
+['dnNo','dnDate','dnProject','dnPlate','dnDeliveredBy','dnReceivedBy','dnNote'].forEach(id=>{if($(id))$(id).addEventListener('input',updateDeliveryPreview)});
+if($('dnContact')) $('dnContact').addEventListener('change',updateDeliveryPreview);$('iProduct').addEventListener('change',renderSelected);$('productSearch').addEventListener('input',render);$('moveSearch').addEventListener('input',render);$('exportProducts').addEventListener('click',()=>csv('AET_SmartStock_Urunler.csv',products));$('exportMoves').addEventListener('click',()=>csv('AET_SmartStock_Hareketler.csv',movements));document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.sec,b)));document.addEventListener('click',e=>{
   if(e.target.classList.contains('prod-img')){
     $('imgModalPic').src=e.target.dataset.img;
     $('imgModal').classList.add('show');
