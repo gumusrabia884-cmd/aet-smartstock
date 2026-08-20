@@ -53,7 +53,7 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
     <p class="muted">Akıllı Depo & Stok Yönetim Sistemi</p>
     <label>E-posta</label><input id="email" type="email">
     <label>Şifre</label><input id="password" type="password">
-    <button class="btn primary" id="loginBtn" type="button">Giriş Yap</button>
+    <button class="btn primary" id="loginBtn" type="button" onclick="login()">Giriş Yap</button>
     <div id="loginMsg" class="muted" style="margin-top:10px"></div>
   </div>
 </div>
@@ -491,10 +491,65 @@ function newDeliveryNote(){
   $('dnNo').value=generateDnNo();$('dnDate').value=nowLocal();$('dnContact').value='';$('dnProject').value='';$('dnShipAddress').value='';$('dnPlate').value='';$('dnDeliveredBy').value='';$('dnReceivedBy').value='';$('dnNote').value='';$('dnReduceStock').checked=false;dnLinesData=[];renderDeliveryLines();updateDeliveryPreview();
 }
 
-async function login(){$('loginMsg').textContent='Giriş yapılıyor...';const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){$('loginMsg').textContent='Giriş başarısız.';return}$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadData()}
+
+async function ensureSupabase(){
+  if(sb) return true;
+  if(window.supabase && window.supabase.createClient){
+    sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    return true;
+  }
+  const msg=$('loginMsg');
+  if(msg) msg.textContent='Bağlantı hazırlanıyor...';
+
+  await new Promise((resolve)=>{
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/@supabase/supabase-js@2';
+    s.onload=resolve;
+    s.onerror=resolve;
+    document.head.appendChild(s);
+    setTimeout(resolve,2500);
+  });
+
+  if(window.supabase && window.supabase.createClient){
+    sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    return true;
+  }
+  if(msg) msg.textContent='Bağlantı kurulamadı. İnternet bağlantısını kontrol edip sayfayı yenileyin.';
+  return false;
+}
+
+async function login(){
+  const msg=$('loginMsg');
+  if(msg) msg.textContent='Giriş yapılıyor...';
+
+  const ok=await ensureSupabase();
+  if(!ok) return;
+
+  const email=$('email').value.trim();
+  const password=$('password').value;
+  if(!email || !password){
+    if(msg) msg.textContent='E-posta ve şifrenizi girin.';
+    return;
+  }
+
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error){
+      if(msg) msg.textContent='Giriş başarısız: E-posta veya şifreyi kontrol edin.';
+      return;
+    }
+    if(msg) msg.textContent='';
+    $('login').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    await loadData();
+  }catch(e){
+    console.error(e);
+    if(msg) msg.textContent='Giriş sırasında bağlantı hatası oluştu.';
+  }
+}
 async function logout(){await sb.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 document.addEventListener('DOMContentLoaded',async()=>{
-sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);['iDate','sDate','rDate'].forEach(id=>$(id).value=nowLocal());$('dnDate').value=nowLocal();$('dnNo').value=generateDnNo();$('loginBtn').addEventListener('click',login);$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').addEventListener('click',logout);$('addProduct').addEventListener('click',addProduct);$('cancelProductEdit').addEventListener('click',resetProductForm);$('stockInBtn').addEventListener('click',stockIn);$('issueBtn').addEventListener('click',issue);$('returnBtn').addEventListener('click',ret);
+if(window.supabase&&window.supabase.createClient) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);['iDate','sDate','rDate'].forEach(id=>$(id).value=nowLocal());$('dnDate').value=nowLocal();$('dnNo').value=generateDnNo();$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').addEventListener('click',logout);$('addProduct').addEventListener('click',addProduct);$('cancelProductEdit').addEventListener('click',resetProductForm);$('stockInBtn').addEventListener('click',stockIn);$('issueBtn').addEventListener('click',issue);$('returnBtn').addEventListener('click',ret);
 $('saveContact').addEventListener('click',saveWarehouseContact);
 $('cancelContactEdit').addEventListener('click',resetContactForm);
 $('contactSearch').addEventListener('input',render);
@@ -537,6 +592,6 @@ $('dnContact').addEventListener('change',()=>{const c=selectedDnContact();if(c&&
   if(e.target.classList.contains('movement-delete')){
     deleteIssuedMovement(e.target.dataset.id,e.target.dataset.productId,e.target.dataset.qty,e.target.dataset.product);
   }
-});$('imgModal').addEventListener('click',()=>$('imgModal').classList.remove('show'));const {data}=await sb.auth.getSession();if(data.session){$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadData()}});
+});$('imgModal').addEventListener('click',()=>$('imgModal').classList.remove('show'));if(await ensureSupabase()){const {data}=await sb.auth.getSession();if(data.session){$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadData()}}});
 </script>
 </body></html>
