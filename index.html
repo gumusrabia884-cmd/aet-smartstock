@@ -54,6 +54,17 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
   body.print-cargo #cargoPrintArea{position:absolute;left:8mm;top:8mm;width:190mm;max-width:none;border:2px solid #111;border-radius:0;padding:10mm}
   .no-print{display:none!important}
 }
+
+
+/* Proje Takip */
+.project-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:15px}
+.project-stat{background:#fff;border:1px solid #eef1f4;border-radius:14px;padding:15px}.project-stat small{color:var(--muted);font-weight:700}.project-stat strong{display:block;font-size:23px;margin-top:6px}
+.project-product-row{display:grid;grid-template-columns:minmax(180px,2fr) 100px minmax(150px,1fr) auto;gap:8px;align-items:end;margin:8px 0}
+.project-product-row .btn{padding:10px 12px}
+.project-filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.project-note{font-size:12px;color:var(--muted);margin-top:6px}
+@media(max-width:950px){.project-stats{grid-template-columns:repeat(2,1fr)}.project-product-row{grid-template-columns:1fr 85px 1fr auto}}
+@media(max-width:700px){.project-stats,.project-filters{grid-template-columns:1fr}.project-product-row{grid-template-columns:1fr}.project-product-row .btn{width:100%}}
 </style>
 
 </head>
@@ -78,6 +89,7 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
   <button class="navbtn" data-sec="issue">📤 Ürün Ver</button>
   <button class="navbtn" data-sec="returnsec">↩️ İade / Geri Teslim</button>
   <button class="navbtn" data-sec="movements">🧾 Stok Hareketleri</button>
+  <button class="navbtn" data-sec="projects">📁 Proje Takip</button>
   <button class="navbtn" data-sec="alerts">⚠️ Kritik Stok</button>
   <button class="navbtn" data-sec="reports">📑 Raporlar</button>
   <button class="navbtn" data-sec="contactssec">👥 Cariler</button>
@@ -263,6 +275,59 @@ input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px
         <div class="invoice-footer">CORE &nbsp;&nbsp;&nbsp; HAGER &nbsp;&nbsp;&nbsp; KNX PARTNER</div>
       </div>
     </div>
+  </div>
+</section>
+
+
+<section id="projects" class="section">
+  <div class="project-stats">
+    <div class="project-stat"><small>Toplam Proje</small><strong id="prStatTotal">0</strong></div>
+    <div class="project-stat"><small>Devam Eden</small><strong id="prStatActive">0</strong></div>
+    <div class="project-stat"><small>Teslim Yaklaşan / Geciken</small><strong id="prStatDue" class="warn">0</strong></div>
+    <div class="project-stat"><small>Bekleyen Tahsilat (TL)</small><strong id="prStatReceivable">₺0</strong></div>
+  </div>
+
+  <div class="card">
+    <h3>📁 Proje Ekle / Düzenle</h3>
+    <input id="prId" type="hidden">
+    <div class="formgrid">
+      <div><label>Proje Adı *</label><input id="prName" placeholder="Proje adı"></div>
+      <div><label>Müşteri / Firma</label><input id="prCustomer" placeholder="Müşteri veya firma"></div>
+      <div><label>Proje Görevli Kişi</label><input id="prResponsible" placeholder="Görevli kişi"></div>
+      <div><label>Proje Durumu</label><select id="prStatus"><option>Planlama</option><option>Devam Ediyor</option><option>Teslim Bekliyor</option><option>Tamamlandı</option><option>İptal</option></select></div>
+      <div><label>Sözleşme Tarihi</label><input id="prContractDate" type="date"></div>
+      <div><label>Planlanan Teslim Tarihi</label><input id="prDeliveryDate" type="date"></div>
+      <div><label>Gerçek Teslim Tarihi</label><input id="prActualDelivery" type="date"></div>
+      <div><label>Revize Durumu</label><select id="prRevision"><option>Revize Yok</option><option>Revize Bekleniyor</option><option>Revize Yapılıyor</option><option>Revize Onaylandı</option></select></div>
+      <div><label>Anlaşılan Tutar</label><input id="prAmount" type="number" min="0" step="0.01"></div>
+      <div><label>Para Birimi</label><select id="prCurrency"><option>TL</option><option>EUR</option><option>USD</option></select></div>
+      <div><label>Ödenen Tutar</label><input id="prPaid" type="number" min="0" step="0.01"></div>
+      <div><label>Ödeme Durumu</label><select id="prPaymentStatus"><option>Ödenmedi</option><option>Kısmi Ödendi</option><option>Ödendi</option></select></div>
+      <div><label>Sonraki Ödeme Tarihi</label><input id="prPaymentDate" type="date"></div>
+      <div style="grid-column:span 3"><label>Ödeme Bilgileri</label><input id="prPaymentNote" placeholder="Peşinat, vade, çek/havale, kalan ödeme vb."></div>
+      <div style="grid-column:1/-1"><label>Proje / Teslimat Notları</label><input id="prNotes" placeholder="Montaj, revize, eksik ürün, müşteri talebi vb."></div>
+    </div>
+
+    <hr style="border:0;border-top:1px solid #e5e7eb;margin:18px 0">
+    <h4>Projeye Giden / Gidecek Ürünler</h4>
+    <div id="prProductRows"></div>
+    <div class="actions"><button class="btn soft" id="prAddProduct" type="button">+ Ürün Ekle</button></div>
+    <div class="project-note">Ürün durumunu “Sipariş Edilecek”, “Siparişte”, “Hazır” veya “Teslim Edildi” olarak takip edebilirsin. Stoktaki ürünler listeden seçilebilir.</div>
+
+    <div class="actions">
+      <button class="btn primary" id="prSave" type="button">Projeyi Kaydet</button>
+      <button class="btn soft hidden" id="prCancel" type="button">Düzenlemeyi İptal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="top"><h3>Proje Listesi</h3><button class="btn soft" id="prExport" type="button">Excel / CSV İndir</button></div>
+    <div class="project-filters">
+      <input id="prSearch" placeholder="Proje, müşteri, görevli veya ürün ara...">
+      <select id="prStatusFilter"><option value="">Tüm Proje Durumları</option><option>Planlama</option><option>Devam Ediyor</option><option>Teslim Bekliyor</option><option>Tamamlandı</option><option>İptal</option></select>
+      <select id="prPaymentFilter"><option value="">Tüm Ödeme Durumları</option><option>Ödenmedi</option><option>Kısmi Ödendi</option><option>Ödendi</option></select>
+    </div>
+    <div id="prTable" class="table-wrap"></div>
   </div>
 </section>
 
@@ -720,6 +785,50 @@ function printCargo(){
   setTimeout(()=>document.body.classList.remove('print-cargo'),300);
 }
 
+
+// ---------------- PROJE TAKİP ----------------
+const PROJECT_KEY='aet_smartstock_projects_v2';
+let projectRecords=[];
+function prEsc(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function prMoney(n,c='TL'){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(Number(n||0))+' '+c}
+function prDate(v){if(!v)return '-';const a=String(v).split('-');return a.length===3?`${a[2]}.${a[1]}.${a[0]}`:v}
+function loadProjectsLocal(){try{projectRecords=JSON.parse(localStorage.getItem(PROJECT_KEY)||'[]');if(!Array.isArray(projectRecords))projectRecords=[]}catch{projectRecords=[]}renderProjects()}
+function persistProjects(){localStorage.setItem(PROJECT_KEY,JSON.stringify(projectRecords));renderProjects()}
+function projectProductOptions(selected=''){
+  const first='<option value="">Ürün seçin / elle yazın</option>';
+  return first+products.map(p=>`<option value="${prEsc(p.name)}" data-id="${p.id}" ${selected===p.name?'selected':''}>${prEsc(p.code)} - ${prEsc(p.name)} (${Number(p.stock_qty||0)} ${prEsc(p.unit||'Adet')})</option>`).join('');
+}
+function addProjectProductRow(data={}){
+  const box=$('prProductRows');if(!box)return;
+  const row=document.createElement('div');row.className='project-product-row';
+  row.innerHTML=`<div><label>Ürün</label><select class="prProdSelect">${projectProductOptions(data.name||'')}</select><input class="prProdManual" placeholder="Listede yoksa ürün adını yaz" value="${prEsc(data.manual||(!products.some(p=>p.name===data.name)?data.name:'')||'')}" style="margin-top:6px"></div><div><label>Adet</label><input class="prProdQty" type="number" min="0" step="1" value="${Number(data.qty||0)||''}"></div><div><label>Durum</label><select class="prProdStatus">${['Sipariş Edilecek','Siparişte','Hazır','Teslim Edildi'].map(x=>`<option ${data.status===x?'selected':''}>${x}</option>`).join('')}</select></div><button class="btn danger prProdRemove" type="button">Sil</button>`;
+  box.appendChild(row);
+}
+function getProjectProductRows(){return [...document.querySelectorAll('#prProductRows .project-product-row')].map(r=>{const sel=r.querySelector('.prProdSelect').value.trim(),manual=r.querySelector('.prProdManual').value.trim();return {name:sel||manual,manual:sel?'':manual,qty:Number(r.querySelector('.prProdQty').value||0),status:r.querySelector('.prProdStatus').value}}).filter(x=>x.name)}
+function resetProjectForm(){
+  $('prId').value='';['prName','prCustomer','prResponsible','prContractDate','prDeliveryDate','prActualDelivery','prAmount','prPaid','prPaymentDate','prPaymentNote','prNotes'].forEach(id=>$(id).value='');
+  $('prStatus').value='Planlama';$('prRevision').value='Revize Yok';$('prCurrency').value='TL';$('prPaymentStatus').value='Ödenmedi';$('prProductRows').innerHTML='';addProjectProductRow();$('prSave').textContent='Projeyi Kaydet';$('prCancel').classList.add('hidden');
+}
+function saveProjectRecord(){
+  const name=$('prName').value.trim();if(!name)return alert('Proje adı zorunlu.');
+  const id=$('prId').value||('pr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+  const rec={id,name,customer:$('prCustomer').value.trim(),responsible:$('prResponsible').value.trim(),status:$('prStatus').value,contractDate:$('prContractDate').value,deliveryDate:$('prDeliveryDate').value,actualDelivery:$('prActualDelivery').value,revision:$('prRevision').value,amount:Number($('prAmount').value||0),currency:$('prCurrency').value,paid:Number($('prPaid').value||0),paymentStatus:$('prPaymentStatus').value,paymentDate:$('prPaymentDate').value,paymentNote:$('prPaymentNote').value.trim(),notes:$('prNotes').value.trim(),items:getProjectProductRows(),updatedAt:new Date().toISOString()};
+  const i=projectRecords.findIndex(x=>x.id===id);if(i>=0)projectRecords[i]=rec;else projectRecords.unshift(rec);persistProjects();resetProjectForm();alert(i>=0?'Proje güncellendi.':'Proje kaydedildi.');
+}
+function editProjectRecord(id){const p=projectRecords.find(x=>x.id===id);if(!p)return;$('prId').value=p.id;$('prName').value=p.name||'';$('prCustomer').value=p.customer||'';$('prResponsible').value=p.responsible||'';$('prStatus').value=p.status||'Planlama';$('prContractDate').value=p.contractDate||'';$('prDeliveryDate').value=p.deliveryDate||'';$('prActualDelivery').value=p.actualDelivery||'';$('prRevision').value=p.revision||'Revize Yok';$('prAmount').value=p.amount||'';$('prCurrency').value=p.currency||'TL';$('prPaid').value=p.paid||'';$('prPaymentStatus').value=p.paymentStatus||'Ödenmedi';$('prPaymentDate').value=p.paymentDate||'';$('prPaymentNote').value=p.paymentNote||'';$('prNotes').value=p.notes||'';$('prProductRows').innerHTML='';(p.items||[]).forEach(addProjectProductRow);if(!(p.items||[]).length)addProjectProductRow();$('prSave').textContent='Projeyi Güncelle';$('prCancel').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+function deleteProjectRecord(id){const p=projectRecords.find(x=>x.id===id);if(!p)return;if(confirm(`"${p.name}" projesi silinsin mi?`)){projectRecords=projectRecords.filter(x=>x.id!==id);persistProjects();if($('prId').value===id)resetProjectForm()}}
+function renderProjects(){
+  if(!$('prTable'))return;
+  const q=($('prSearch')?.value||'').toLowerCase(),sf=$('prStatusFilter')?.value||'',pf=$('prPaymentFilter')?.value||'';
+  const list=projectRecords.filter(p=>{const text=[p.name,p.customer,p.responsible,p.notes,p.paymentNote,...(p.items||[]).map(x=>x.name)].join(' ').toLowerCase();return(!q||text.includes(q))&&(!sf||p.status===sf)&&(!pf||p.paymentStatus===pf)});
+  $('prTable').innerHTML=list.length?`<table><tr><th>Proje / Müşteri</th><th>Sözleşme</th><th>Teslim</th><th>Tutar</th><th>Revize</th><th>Ürünler</th><th>Görevli</th><th>Ödeme</th><th>Durum</th><th></th></tr>${list.map(p=>{const bal=Math.max(0,Number(p.amount||0)-Number(p.paid||0));const order=(p.items||[]).filter(x=>x.status==='Sipariş Edilecek'||x.status==='Siparişte').reduce((a,x)=>a+Number(x.qty||0),0);const delivered=(p.items||[]).filter(x=>x.status==='Teslim Edildi').reduce((a,x)=>a+Number(x.qty||0),0);return `<tr><td><b>${prEsc(p.name)}</b><br><span class="muted">${prEsc(p.customer||'-')}</span></td><td>${prDate(p.contractDate)}</td><td>${prDate(p.deliveryDate)}${p.actualDelivery?`<br><small>Gerçek: ${prDate(p.actualDelivery)}</small>`:''}</td><td><b>${prMoney(p.amount,p.currency)}</b></td><td>${prEsc(p.revision||'-')}</td><td>${delivered?`Teslim: ${delivered}<br>`:''}${order?`<span class="warn">Sipariş bekleyen: ${order}</span>`:'Sipariş beklemiyor'}</td><td>${prEsc(p.responsible||'-')}</td><td>${prEsc(p.paymentStatus||'-')}<br><small>Kalan: ${prMoney(bal,p.currency)}</small>${p.paymentDate?`<br><small>Vade: ${prDate(p.paymentDate)}</small>`:''}</td><td>${prEsc(p.status||'-')}</td><td><div class="actions"><button class="btn soft prEdit" data-id="${p.id}" type="button">Düzenle</button><button class="btn danger prDelete" data-id="${p.id}" type="button">Sil</button></div></td></tr>`}).join('')}</table>`:'<p class="muted">Henüz proje kaydı yok.</p>';
+  $('prStatTotal').textContent=projectRecords.length;$('prStatActive').textContent=projectRecords.filter(p=>['Planlama','Devam Ediyor','Teslim Bekliyor'].includes(p.status)).length;const now=new Date();now.setHours(0,0,0,0);const d14=new Date(now);d14.setDate(d14.getDate()+14);$('prStatDue').textContent=projectRecords.filter(p=>p.deliveryDate&&new Date(p.deliveryDate+'T00:00:00')<=d14&&!['Tamamlandı','İptal'].includes(p.status)).length;const tl=projectRecords.filter(p=>p.currency==='TL').reduce((a,p)=>a+Math.max(0,Number(p.amount||0)-Number(p.paid||0)),0);$('prStatReceivable').textContent='₺'+new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(tl);
+}
+function exportProjectsCsv(){
+  if(!projectRecords.length)return alert('Proje kaydı yok.');
+  const rows=projectRecords.map(p=>({Proje:p.name,Müşteri:p.customer,Sözleşme:p.contractDate,Teslim:p.deliveryDate,Gerçek_Teslim:p.actualDelivery,Durum:p.status,Revize:p.revision,Anlaşılan_Tutar:p.amount,Para_Birimi:p.currency,Ödenen:p.paid,Kalan:Math.max(0,Number(p.amount||0)-Number(p.paid||0)),Ödeme_Durumu:p.paymentStatus,Ödeme_Tarihi:p.paymentDate,Görevli:p.responsible,Ürünler:(p.items||[]).map(x=>`${x.name} - ${x.qty} - ${x.status}`).join(' | '),Notlar:p.notes}));csv('AET_Projeler.csv',rows)
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
 if(window.supabase&&window.supabase.createClient) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);['iDate','sDate','rDate'].forEach(id=>$(id).value=nowLocal());$('dnDate').value=nowLocal();$('dnNo').value=generateDnNo();$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').addEventListener('click',logout);$('addProduct').addEventListener('click',addProduct);$('cancelProductEdit').addEventListener('click',resetProductForm);$('stockInBtn').addEventListener('click',stockIn);$('issueBtn').addEventListener('click',issue);$('returnBtn').addEventListener('click',ret);
 if($('saveContact')) $('saveContact').addEventListener('click',saveWarehouseContact);
@@ -731,6 +840,13 @@ if($('dnPrint')) $('dnPrint').addEventListener('click',()=>{updateDeliveryPrevie
 if($('dnNew')) $('dnNew').addEventListener('click',newDeliveryNote);
 if($('kgPrint')) $('kgPrint').addEventListener('click',printCargo);
 if($('kgClear')) $('kgClear').addEventListener('click',clearCargo);
+if($('prAddProduct')) $('prAddProduct').addEventListener('click',()=>addProjectProductRow());
+if($('prSave')) $('prSave').addEventListener('click',saveProjectRecord);
+if($('prCancel')) $('prCancel').addEventListener('click',resetProjectForm);
+if($('prExport')) $('prExport').addEventListener('click',exportProjectsCsv);
+['prSearch','prStatusFilter','prPaymentFilter'].forEach(id=>{if($(id)){ $(id).addEventListener('input',renderProjects); $(id).addEventListener('change',renderProjects); }});
+if($('prProductRows')) $('prProductRows').addEventListener('click',e=>{if(e.target.classList.contains('prProdRemove'))e.target.closest('.project-product-row').remove()});
+loadProjectsLocal();
 ['kgReceiver','kgReceiverPhone','kgAddress','kgSender','kgSenderPhone','kgSenderNo','kgPayment','kgNote'].forEach(id=>{if($(id)){ $(id).addEventListener('input',updateCargoPreview); $(id).addEventListener('change',updateCargoPreview); }});
 updateCargoPreview();
 ['dnNo','dnDate','dnProject','dnPlate','dnDeliveredBy','dnReceivedBy','dnNote'].forEach(id=>{if($(id))$(id).addEventListener('input',updateDeliveryPreview)});
@@ -765,6 +881,8 @@ if($('dnContact')) $('dnContact').addEventListener('change',updateDeliveryPrevie
   if(e.target.classList.contains('contact-delete')) deleteWarehouseContact(e.target.dataset.id,e.target.dataset.name);
   if(e.target.classList.contains('dn-line-delete')) removeDeliveryLine(Number(e.target.dataset.index));
   if(e.target.classList.contains('dn-open')) openDeliveryNote(e.target.dataset.id);
+  if(e.target.classList.contains('prEdit')) editProjectRecord(e.target.dataset.id);
+  if(e.target.classList.contains('prDelete')) deleteProjectRecord(e.target.dataset.id);
   if(e.target.classList.contains('movement-delete')){
     deleteIssuedMovement(e.target.dataset.id,e.target.dataset.productId,e.target.dataset.qty,e.target.dataset.product);
   }
